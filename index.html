@@ -29,35 +29,39 @@
         background: transparent;
       }
 
-      /* Thermal Print Optimization */
+      /* Thermal Print Optimization - Standard System Print */
       @media print {
         @page {
-          margin: 0;
-          padding: 0;
-          size: 58mm auto; /* Standard thermal width */
+          margin: 0 !important;
+          size: 58mm auto;
         }
-        body * {
-          visibility: hidden;
-          font-weight: normal !important;
-          font-size: 8.5pt !important;
-          line-height: 1.1 !important;
+        body {
+          background: white !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          width: 58mm !important;
         }
-        .print\:block, .print\:block * {
-          visibility: visible;
+        #root > *:not(.print-container) {
+          display: none !important;
+        }
+        .print-container {
+          display: block !important;
+          width: 58mm !important;
+          padding: 4mm !important;
+          background: white !important;
+          color: black !important;
+          font-family: 'Courier New', Courier, monospace !important;
         }
         .print\:block {
-          position: absolute;
-          left: 0;
-          top: 0;
-          width: 58mm;
-          padding: 2mm;
+          display: block !important;
+          visibility: visible !important;
         }
-        /* Mobile POS printing usually needs no headers/footers */
         nav, header, button {
           display: none !important;
         }
-        .border-t {
-          border-top: 0.1mm solid black !important;
+        * {
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
         }
       }
     </style>

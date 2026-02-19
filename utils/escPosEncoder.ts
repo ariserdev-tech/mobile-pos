@@ -1,4 +1,3 @@
-
 import { Transaction } from '../types';
 
 const ESC = 0x1B;
@@ -38,11 +37,6 @@ export class EscPosEncoder {
     return this;
   }
 
-  lineFeed(count: number = 1) {
-    for (let i = 0; i < count; i++) this.write(LF);
-    return this;
-  }
-
   text(content: string) {
     this.write(this.encoder.encode(content));
     return this;
@@ -56,52 +50,52 @@ export class EscPosEncoder {
   encodeTransaction(tx: Transaction) {
     this.initialize();
     
-    // 1. Business Info
+    // 1. Business Identity
     this.alignCenter();
     if (tx.sellerInfo.name) this.text(`${tx.sellerInfo.name.toUpperCase()}\n`);
     if (tx.sellerInfo.address) this.text(`${tx.sellerInfo.address}\n`);
     if (tx.sellerInfo.contact) this.text(`Tel: ${tx.sellerInfo.contact}\n`);
     if (tx.sellerInfo.websiteUrl) this.text(`${tx.sellerInfo.websiteUrl}\n`);
-    if (tx.sellerInfo.name || tx.sellerInfo.address || tx.sellerInfo.contact || tx.sellerInfo.websiteUrl) this.line();
-
-    // 2. Receipt Info
-    this.alignLeft();
-    this.text(`Receipt Number: ${tx.id.slice(-8).toUpperCase()}\n`);
-    this.text(`Date: ${new Date(tx.timestamp).toLocaleString()}\n`);
-    this.text(`Payment Type: ${tx.paymentType.toUpperCase()}\n`);
-    if (tx.customer?.name) this.text(`Customer: ${tx.customer.name}\n`);
     this.line();
 
-    // 3. Itemized List
+    // 2. Receipt Meta
+    this.alignLeft();
+    this.text(`No: ${tx.id.slice(-8).toUpperCase()}  ${new Date(tx.timestamp).toLocaleDateString()}\n`);
+    this.text(`Type: ${tx.paymentType.toUpperCase()}\n`);
+    if (tx.customer?.name) this.text(`Cust: ${tx.customer.name}\n`);
+    this.line();
+
+    // 3. Itemized List (Format: Name \n Details)
     tx.items.forEach(item => {
-      const name = item.name.length > 32 ? item.name.slice(0, 29) + '...' : item.name;
-      this.text(`${name}\n`);
-      const qtyText = `${item.quantity} Qty x ${item.sellingPrice.toFixed(2)} Unit Price`;
-      const totalText = (item.manualTotal ?? (item.sellingPrice * item.quantity)).toFixed(2);
-      this.text(` ${qtyText.padEnd(20)} ${totalText.padStart(10)}\n`);
+      // Line 1: Item Name
+      this.text(`${item.name}\n`);
+      
+      // Line 2: Qty x Price then Subtotal
+      const details = `${item.quantity} x ${item.sellingPrice.toFixed(2)}`;
+      const subtotal = (item.manualTotal ?? (item.sellingPrice * item.quantity)).toFixed(2);
+      
+      // Calculate padding for right alignment of subtotal (32 chars total width)
+      const paddingCount = 32 - details.length - subtotal.length - 1;
+      const padding = " ".repeat(Math.max(1, paddingCount));
+      
+      this.text(` ${details}${padding}${subtotal}\n`);
     });
     this.line();
 
-    // 4 & 5. Totals
+    // 4. Totals
     this.alignRight();
-    this.text(`Total Amount Due: ${tx.total.toFixed(2)}\n`);
-    this.text(`Amount Paid: ${tx.amountPaid.toFixed(2)}\n`);
-    if (tx.changeDue > 0) this.text(`Change Due: ${tx.changeDue.toFixed(2)}\n`);
-    if (tx.remainingBalance > 0) this.text(`Remaining Balance: ${tx.remainingBalance.toFixed(2)}\n`);
-    this.line();
-
-    // 6. Policy
-    this.alignCenter();
-    if (tx.sellerInfo.returnPolicy) {
-        this.text(`${tx.sellerInfo.returnPolicy}\n`);
-    }
+    this.text(`TOTAL DUE: ${tx.total.toFixed(2)}\n`);
+    this.text(`PAID: ${tx.amountPaid.toFixed(2)}\n`);
+    if (tx.changeDue > 0) this.text(`CHANGE: ${tx.changeDue.toFixed(2)}\n`);
+    if (tx.remainingBalance > 0) this.text(`BALANCE: ${tx.remainingBalance.toFixed(2)}\n`);
     
-    // 7. Footer
-    this.text("\nThank you for shopping with us!\n");
-    this.text("For POS inquiries, contact:\n");
-    this.text("ariserdev@gmail.com\n");
+    this.alignCenter();
+    this.text("\nThank you for shopping!\n");
+    if (tx.sellerInfo.returnPolicy) {
+      this.text(`\n${tx.sellerInfo.returnPolicy}\n`);
+    }
 
-    this.lineFeed(4); 
+    this.write([LF, LF, LF, LF]); // Feed lines for tearing
     
     return new Uint8Array(this.buffer);
   }

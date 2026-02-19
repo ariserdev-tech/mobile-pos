@@ -6,35 +6,27 @@ class BluetoothPrinterService {
   private characteristic: any = null;
 
   /**
-   * Checks if Web Bluetooth is supported and enabled.
-   * Native shells often return false or undefined here.
+   * Checks if Web Bluetooth is supported.
+   * In most WebViews (Median.co, Cordova, etc.), this returns false.
    */
   async isSupported(): Promise<boolean> {
     const nav = navigator as any;
-    if (!nav.bluetooth) return false;
-    
-    try {
-      if (typeof nav.bluetooth.getAvailability === 'function') {
-        return await nav.bluetooth.getAvailability();
-      }
-      return true;
-    } catch (e: any) {
-      return false;
-    }
+    // Explicitly check for bluetooth API and that we aren't in a restricted WebView
+    return !!(nav.bluetooth && typeof nav.bluetooth.requestDevice === 'function');
   }
 
   /**
-   * Triggers the browser's Bluetooth scan and permission request.
+   * Only works in full browsers (Chrome/Edge). 
+   * For WebViews, this will throw an error handled by the UI to use the Direct Link.
    */
   async connect(): Promise<string> {
     const nav = navigator as any;
     
     if (!nav.bluetooth) {
-      throw new Error('Web Bluetooth is restricted in this environment. Please use the "Direct Print (RawBT)" option for native shells.');
+      throw new Error('WEB_BLUETOOTH_UNSUPPORTED');
     }
 
     try {
-      // Common Thermal Printer Service UUIDs
       const commonServices = [
         '000018f0-0000-1000-8000-00805f9b34fb', 
         '0000ffe0-0000-1000-8000-00805f9b34fb', 
@@ -47,8 +39,6 @@ class BluetoothPrinterService {
         optionalServices: commonServices
       });
 
-      if (!this.device.gatt) throw new Error('GATT communication not supported by this device.');
-      
       const server = await this.device.gatt.connect();
       const services = await server.getPrimaryServices();
       
@@ -65,33 +55,24 @@ class BluetoothPrinterService {
         if (this.characteristic) break;
       }
 
-      if (!this.characteristic) throw new Error('Could not find a writable channel on this printer.');
-
-      return this.device.name || 'Thermal Printer';
+      if (!this.characteristic) throw new Error('No writable channel found.');
+      return this.device.name || 'Printer';
     } catch (error: any) {
-      if (error.name === 'NotFoundError') throw new Error('Scan cancelled. No device was selected.');
-      if (error.name === 'SecurityError') throw new Error('Bluetooth access blocked. Check app permissions.');
+      if (error.name === 'NotFoundError') throw new Error('Discovery cancelled.');
       throw error;
     }
   }
 
   async print(tx: Transaction) {
     if (!this.characteristic || !this.device?.gatt?.connected) {
-      throw new Error('No printer linked.');
+      throw new Error('NOT_CONNECTED');
     }
 
-    try {
-      const encoder = new EscPosEncoder();
-      const data = encoder.encodeTransaction(tx);
-      
-      // Send data in 20-byte chunks to accommodate BLE MTU limits
-      const chunkSize = 20;
-      for (let i = 0; i < data.length; i += chunkSize) {
-        const chunk = data.slice(i, i + chunkSize);
-        await this.characteristic.writeValue(chunk);
-      }
-    } catch (error: any) {
-      throw new Error('Print failed: ' + error.message);
+    const encoder = new EscPosEncoder();
+    const data = encoder.encodeTransaction(tx);
+    const chunkSize = 20;
+    for (let i = 0; i < data.length; i += chunkSize) {
+      await this.characteristic.writeValue(data.slice(i, i + chunkSize));
     }
   }
 
