@@ -1,8 +1,0 @@
-{
-  "name": "Mobile-POS",
-  "description": "Offline-first mobile POS system with inventory management and PDF receipts.",
-  "requestFramePermissions": [
-    "geolocation",
-    "bluetooth"
-  ]
-}
