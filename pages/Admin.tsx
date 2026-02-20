@@ -126,44 +126,120 @@ export default function Admin() {
         startY: 20,
         head: [['Item Name', 'Qty', 'Revenue']],
         body: filteredAggregatedItems.map(i => [i.name, i.quantity, i.total.toFixed(2)]),
-        theme: 'striped', headStyles: { fillColor: [249, 115, 22] }
+        theme: 'striped', headStyles: { fillColor: [238, 77, 45] }
     });
     doc.save(`items_${selectedDate.toISOString().split('T')[0]}.pdf`);
   };
 
   return (
-    <div className="p-4 pb-20 space-y-4 h-full overflow-y-auto">
-      <div className="flex items-center justify-between bg-white p-4 rounded-xl shadow-sm">
-        <button onClick={() => setSelectedDate(new Date(selectedDate.setDate(selectedDate.getDate() - 1)))} className="p-3 bg-gray-100 rounded-full"><ChevronLeft /></button>
-        <div className="text-center" onClick={() => setSelectedDate(new Date())}>
-           <h2 className="font-bold text-lg">{selectedDate.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}</h2>
-           {getStartOfDay(selectedDate).getTime() !== todayDate.getTime() && <span className="text-xs text-primary font-bold">Tap for Today</span>}
+    <div className="p-4 pb-24 space-y-6 h-full overflow-y-auto bg-gray-50/50">
+      {/* Date Selector */}
+      <div className="flex items-center justify-between bg-white p-3 rounded-2xl shadow-sm border border-gray-50">
+        <button 
+          onClick={() => setSelectedDate(new Date(selectedDate.setDate(selectedDate.getDate() - 1)))} 
+          className="w-12 h-12 flex items-center justify-center bg-gray-50 rounded-full text-gray-600 active:scale-90 transition-all"
+        >
+          <ChevronLeft size={20} />
+        </button>
+        <div className="text-center cursor-pointer" onClick={() => setSelectedDate(new Date())}>
+           <h2 className="font-black text-gray-900 text-lg">
+             {selectedDate.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' })}
+           </h2>
         </div>
-        <button onClick={() => setSelectedDate(new Date(selectedDate.setDate(selectedDate.getDate() + 1)))} disabled={getStartOfDay(selectedDate).getTime() >= todayDate.getTime()} className="p-3 bg-gray-100 rounded-full disabled:opacity-30"><ChevronRight /></button>
+        <button 
+          onClick={() => setSelectedDate(new Date(selectedDate.setDate(selectedDate.getDate() + 1)))} 
+          disabled={getStartOfDay(selectedDate).getTime() >= todayDate.getTime()} 
+          className="w-12 h-12 flex items-center justify-center bg-gray-50 rounded-full text-gray-600 active:scale-90 transition-all disabled:opacity-20"
+        >
+          <ChevronRight size={20} />
+        </button>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="bg-gradient-to-br from-green-500 to-green-600 text-white p-4 rounded-xl shadow-md col-span-2">
-            <p className="text-sm opacity-90">Cash Collected Today</p>
-            <p className="text-3xl font-black">{stats.cashCollected.toFixed(2)}</p>
+      {/* Stats Grid */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="bg-[#00B14F] p-5 rounded-2xl shadow-sm col-span-2 relative overflow-hidden group">
+            <p className="text-[11px] font-medium text-white/80 mb-1">Cash Collected Today</p>
+            <p className="text-4xl font-black text-white tracking-tighter">
+              {stats.cashCollected.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+            </p>
         </div>
-        <div className="bg-white p-4 rounded-xl shadow-md border border-orange-100"><p className="text-sm text-gray-500">Sales</p><p className="text-2xl font-bold">{stats.totalSales.toFixed(2)}</p></div>
-        <div className="bg-white p-4 rounded-xl shadow-md border border-gray-100"><p className="text-sm text-gray-500">Profit (Paid)</p><p className="text-2xl font-bold text-green-600">{stats.netSales.toFixed(2)}</p></div>
-        <div className="bg-white p-4 rounded-xl shadow-md border border-red-100 col-span-2 flex justify-between items-center">
-            <div><p className="text-sm text-gray-500">Loans Due</p><p className="text-2xl font-bold text-red-500">{dailyLoanTotal.toFixed(2)}</p></div>
-            <button onClick={() => setShowLoanManager(true)} className="bg-red-50 text-red-500 px-4 py-2 rounded-lg font-bold border border-red-100 flex items-center gap-2"><Wallet size={16} /> Manage</button>
+
+        <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-50">
+          <p className="text-[11px] font-medium text-gray-400 mb-1">Sales</p>
+          <p className="text-2xl font-black text-gray-900 leading-none">{stats.totalSales.toFixed(2)}</p>
         </div>
-        <button onClick={() => setShowItemsModal(true)} className="col-span-2 bg-white p-4 rounded-xl border border-orange-100 flex items-center justify-center gap-2 text-primary font-bold"><Package size={20} /> View Items Sold</button>
+
+        <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-50">
+          <p className="text-[11px] font-medium text-gray-400 mb-1">Profit (Paid)</p>
+          <p className="text-2xl font-black text-[#00B14F] leading-none">{stats.netSales.toFixed(2)}</p>
+        </div>
+
+        <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-50 col-span-2 flex justify-between items-center gap-3">
+            <div className="min-w-0">
+              <p className="text-[11px] font-medium text-gray-400 mb-1">Loans Due</p>
+              <p className="text-2xl font-black text-[#EE4D2D] truncate">{dailyLoanTotal.toFixed(2)}</p>
+            </div>
+            <button 
+              onClick={() => setShowLoanManager(true)} 
+              className="bg-[#FFF5F1] text-[#EE4D2D] px-4 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider flex items-center gap-2 active:scale-95 transition-all shrink-0"
+            >
+              <Wallet size={16} /> Manage
+            </button>
+        </div>
+
+        <button 
+          onClick={() => setShowItemsModal(true)} 
+          className="col-span-2 bg-white text-[#EE4D2D] p-4 rounded-2xl shadow-sm border border-[#FFF5F1] flex items-center justify-center gap-3 font-black text-sm uppercase tracking-widest active:scale-[0.98] transition-all"
+        >
+          <Package size={20} className="text-[#EE4D2D]" /> 
+          <span>View Items Sold</span>
+        </button>
       </div>
 
-      <div className="space-y-3">
-        <h3 className="font-bold text-gray-700">Daily Transactions</h3>
-        {dailyTransactions.map(tx => (
-          <div key={tx.id} onClick={() => setSelectedTx(tx)} className="bg-white p-4 rounded-lg shadow-sm border border-gray-100 flex justify-between items-center cursor-pointer">
-            <div><p className="font-bold">{tx.customer?.name || 'Walk-in'}</p><p className="text-xs text-gray-400">{new Date(tx.timestamp).toLocaleTimeString()}</p></div>
-            <div className="text-right"><p className="font-bold">{tx.total.toFixed(2)}</p>{tx.remainingBalance > 0 && <span className="text-[10px] bg-red-100 text-red-600 px-2 py-1 rounded-full font-bold">Bal: {tx.remainingBalance.toFixed(2)}</span>}</div>
-          </div>
-        ))}
+      {/* Transaction List */}
+      <div className="space-y-4">
+        <div className="px-1">
+          <h3 className="text-lg font-black text-[#263238]">
+            Daily Transactions
+          </h3>
+        </div>
+        
+        <div className="space-y-3">
+          {dailyTransactions.length === 0 ? (
+            <div className="text-center py-12 bg-white rounded-2xl border border-dashed border-gray-200">
+              <Calendar size={40} className="mx-auto text-gray-200 mb-2" />
+              <p className="text-gray-400 text-sm font-medium">No transactions for this day</p>
+            </div>
+          ) : (
+            dailyTransactions.map(tx => (
+              <div 
+                key={tx.id} 
+                onClick={() => setSelectedTx(tx)} 
+                className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex justify-between items-center cursor-pointer hover:border-primary/30 transition-colors active:bg-gray-50"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center text-gray-400">
+                    <Users size={18} />
+                  </div>
+                  <div>
+                    <p className="font-bold text-gray-900">{tx.customer?.name || 'Walk-in Customer'}</p>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
+                      {new Date(tx.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {tx.paymentType}
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="font-black text-gray-900">₱{tx.total.toFixed(2)}</p>
+                  {tx.remainingBalance > 0 && (
+                    <span className="text-[9px] bg-red-50 text-red-600 px-2 py-0.5 rounded-full font-black border border-red-100">
+                      BAL: {tx.remainingBalance.toFixed(2)}
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </div>
 
       {/* Modals */}
@@ -172,7 +248,7 @@ export default function Admin() {
              <div className="flex p-1 bg-gray-100 rounded-xl mb-4"><button onClick={() => setLoanTab('today')} className={`flex-1 py-2 rounded-lg text-sm font-bold ${loanTab === 'today' ? 'bg-white text-primary' : 'text-gray-500'}`}>Today</button><button onClick={() => setLoanTab('all')} className={`flex-1 py-2 rounded-lg text-sm font-bold ${loanTab === 'all' ? 'bg-white text-primary' : 'text-gray-500'}`}>All Time</button></div>
              <div className="flex-1 overflow-y-auto space-y-3 pb-4">
                  {(loanTab === 'today' ? dailyLoans : allOutstandingLoans).map(tx => (
-                     <div key={tx.id} className="bg-white border p-4 rounded-xl flex flex-col gap-2">
+                     <div key={tx.id} className="bg-white p-4 rounded-xl flex flex-col gap-2 shadow-sm">
                          <div className="flex justify-between items-start">
                              <div><span className="font-bold text-lg">{tx.customer?.name}</span><p className="text-xs text-gray-500">{new Date(tx.timestamp).toLocaleDateString()}</p></div>
                              <div className="text-right text-red-500 font-bold">{tx.remainingBalance.toFixed(2)}</div>
@@ -186,10 +262,10 @@ export default function Admin() {
 
       <Modal isOpen={showItemsModal} onClose={() => setShowItemsModal(false)} title="Items Sold">
         <div className="space-y-4">
-          <div className="flex gap-2"><input type="text" placeholder="Search..." value={itemSearchQuery} onChange={e => setItemSearchQuery(e.target.value)} className="flex-1 p-3 rounded-xl border outline-none"/><button onClick={downloadItemsSoldPDF} className="bg-orange-100 text-primary p-3 rounded-xl"><Download/></button></div>
+          <div className="flex gap-2"><input type="text" placeholder="Search..." value={itemSearchQuery} onChange={e => setItemSearchQuery(e.target.value)} className="flex-1 p-3 rounded-xl bg-gray-50 outline-none"/><button onClick={downloadItemsSoldPDF} className="bg-primary/10 text-primary p-3 rounded-xl"><Download/></button></div>
           <div className="max-h-[50vh] overflow-y-auto space-y-2">
              {filteredAggregatedItems.map((item, idx) => (
-                <div key={idx} className="bg-gray-50 p-4 rounded-xl flex justify-between items-center"><div><p className="font-bold">{item.name}</p><p className="text-xs text-gray-500">{item.total.toFixed(2)}</p></div><div className="bg-white px-3 py-1 rounded border font-bold text-primary">{item.quantity} sold</div></div>
+                <div key={idx} className="bg-gray-50 p-4 rounded-xl flex justify-between items-center"><div><p className="font-bold">{item.name}</p><p className="text-xs text-gray-500">{item.total.toFixed(2)}</p></div><div className="bg-white px-3 py-1 rounded font-bold text-primary">{item.quantity} sold</div></div>
              ))}
           </div>
         </div>
@@ -198,7 +274,7 @@ export default function Admin() {
       <Modal isOpen={!!selectedTx} onClose={() => setSelectedTx(null)} title="Transaction">
         {selectedTx && <div className="space-y-4">
              <div className="bg-gray-50 p-3 rounded text-sm space-y-1"><p>ID: {selectedTx.id}</p><p>Customer: {selectedTx.customer?.name || 'Walk-in'}</p></div>
-             <div className="border-y py-2 space-y-1">{selectedTx.items.map((i, idx) => <div key={idx} className="flex justify-between text-sm"><span>{i.quantity}x {i.name}</span><span>{(i.manualTotal ?? i.sellingPrice * i.quantity).toFixed(2)}</span></div>)}</div>
+             <div className="py-2 space-y-1">{selectedTx.items.map((i, idx) => <div key={idx} className="flex justify-between text-sm"><span>{i.quantity}x {i.name}</span><span>{(i.manualTotal ?? i.sellingPrice * i.quantity).toFixed(2)}</span></div>)}</div>
              <div className="flex justify-between font-bold text-lg"><span>Total</span><span>{selectedTx.total.toFixed(2)}</span></div>
              <div className="flex justify-between text-red-500 font-bold"><span>Balance</span><span>{selectedTx.remainingBalance.toFixed(2)}</span></div>
              <div className="grid grid-cols-2 gap-3 pt-4">
@@ -216,7 +292,7 @@ export default function Admin() {
 
       <Modal isOpen={!!repaymentTx} onClose={() => setRepaymentTx(null)} title="Loan Repayment">
           {repaymentTx && <div className="space-y-6">
-              <div className="bg-gray-50 p-4 rounded-xl border text-center"><p className="text-gray-500">Customer: <span className="font-bold text-gray-800">{repaymentTx.customer?.name}</span></p><p className="text-xl font-bold text-red-500 mt-2">Balance: {repaymentTx.remainingBalance.toFixed(2)}</p></div>
+              <div className="bg-gray-50 p-4 rounded-xl text-center"><p className="text-gray-500">Customer: <span className="font-bold text-gray-800">{repaymentTx.customer?.name}</span></p><p className="text-xl font-bold text-red-500 mt-2">Balance: {repaymentTx.remainingBalance.toFixed(2)}</p></div>
               <Input label="Amount to Pay" type="number" value={paymentAmount} onChange={e => setPaymentAmount(e.target.value)} placeholder="0.00" className="text-3xl font-bold text-primary" />
               <div className="flex gap-3 pt-4"><Button variant="secondary" onClick={() => setRepaymentTx(null)}>Cancel</Button><Button onClick={handleRepaymentSubmit}>Confirm</Button></div>
           </div>}

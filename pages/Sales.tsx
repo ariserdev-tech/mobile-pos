@@ -113,32 +113,41 @@ export default function Sales() {
   };
 
   return (
-    <div className="h-full flex flex-col bg-gray-50">
-      <div className="bg-primary p-3 sticky top-0 z-30 shadow-sm flex gap-2 items-center">
+    <div className="h-full flex flex-col bg-gray-50/50">
+      <div className="bg-primary p-2.5 sticky top-0 z-30 shadow-sm flex gap-2 items-center">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-          <input type="text" placeholder="Search items..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full pl-9 pr-4 py-2 rounded-lg outline-none text-base" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+          <input 
+            type="text" 
+            placeholder="Search items..." 
+            value={searchQuery} 
+            onChange={(e) => setSearchQuery(e.target.value)} 
+            className="w-full pl-9 pr-3 py-2 rounded-xl outline-none text-sm bg-white shadow-inner" 
+          />
         </div>
-        <button onClick={() => setIsCartOpen(true)} className="relative bg-white h-[42px] px-3 rounded-lg text-primary shadow-sm flex items-center gap-2 font-bold border border-white">
-          <ShoppingCart size={20} />
-          <span className="text-sm">{cartTotal.toFixed(0)}</span>
+        <button onClick={() => setIsCartOpen(true)} className="relative bg-white h-[38px] px-3 rounded-xl text-primary shadow-sm flex items-center gap-2 font-black active:scale-95 transition-all">
+          <ShoppingCart size={18} />
+          <span className="text-xs">{cartTotal.toFixed(0)}</span>
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-2 pb-24 space-y-2">
+      <div className="flex-1 overflow-y-auto p-3 pb-24 space-y-2.5">
         {filteredItems.map((item) => (
-          <div key={item.id} onClick={() => {setSelectedItem(item); setItemQty(1); setManualTotal('');}} className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 active:bg-orange-50 flex justify-between items-center">
-            <div><h3 className="font-bold text-gray-800">{item.name}</h3><p className="text-gray-400 text-xs italic">{item.aliases}</p></div>
-            <div className="text-right font-bold text-primary text-xl">{item.sellingPrice.toFixed(2)}</div>
+          <div key={item.id} onClick={() => {setSelectedItem(item); setItemQty(1); setManualTotal('');}} className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 active:bg-primary/5 flex justify-between items-center transition-colors">
+            <div className="min-w-0 flex-1">
+              <h3 className="font-black text-gray-900 text-sm truncate">{item.name}</h3>
+              <p className="text-gray-400 text-[10px] uppercase font-bold tracking-tighter truncate">{item.aliases || 'No aliases'}</p>
+            </div>
+            <div className="text-right font-black text-primary text-lg pl-3">₱{item.sellingPrice.toFixed(2)}</div>
           </div>
         ))}
       </div>
 
       <Modal isOpen={!!selectedItem} onClose={() => setSelectedItem(null)} title={selectedItem?.name || ''}>
         <div className="space-y-4">
-          <div className="flex items-center justify-between bg-gray-50 p-4 rounded-lg border">
+          <div className="flex items-center justify-between bg-gray-50 p-4 rounded-lg">
             <span className="font-semibold text-gray-600 text-sm">Base Price</span>
-            <button onClick={() => setViewBasePrice(!viewBasePrice)} className="px-4 py-1.5 rounded-lg border bg-gray-100 text-gray-600 font-bold">{viewBasePrice ? Number(selectedItem?.basePrice).toFixed(2) : '****'}</button>
+            <button onClick={() => setViewBasePrice(!viewBasePrice)} className="px-4 py-1.5 rounded-lg bg-gray-100 text-gray-600 font-bold">{viewBasePrice ? Number(selectedItem?.basePrice).toFixed(2) : '****'}</button>
           </div>
           <div className="flex items-center justify-center gap-6 py-4">
             <button onClick={() => setItemQty(Math.max(1, itemQty - 1))} className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center"><Minus /></button>
@@ -154,19 +163,19 @@ export default function Sales() {
         <div className="space-y-4">
           <div className="max-h-60 overflow-y-auto space-y-2">
             {cart.map((item, idx) => (
-              <div key={idx} className="flex justify-between items-center bg-gray-50 p-3 rounded-lg border">
+              <div key={idx} className="flex justify-between items-center bg-gray-50 p-3 rounded-lg">
                 <div><div className="font-bold text-sm">{item.name}</div><div className="text-xs text-gray-500">{item.quantity} x {item.sellingPrice.toFixed(2)}</div></div>
                 <button onClick={() => setCart(cart.filter((_, i) => i !== idx))} className="text-red-500 p-2"><Trash2 size={18} /></button>
               </div>
             ))}
           </div>
-          <div className="border-t pt-4">
+          <div className="pt-4">
             <div className="flex justify-between text-xl font-bold mb-4"><span>Total:</span><span className="text-primary">{cartTotal.toFixed(2)}</span></div>
             <Input placeholder="Customer Name" value={customer.name} onChange={(e) => setCustomer({...customer, name: e.target.value})} />
             <div className="bg-gray-50 p-3 rounded-xl space-y-3 mb-4">
                <div className="grid grid-cols-3 gap-2">
                   {['full', 'partial', 'loan'].map(type => (
-                    <button key={type} onClick={() => setPaymentType(type as PaymentType)} className={`py-2 rounded-lg text-xs font-bold border capitalize ${paymentType === type ? 'bg-primary text-white border-primary' : 'bg-white text-gray-500 border-gray-200'}`}>{type}</button>
+                    <button key={type} onClick={() => setPaymentType(type as PaymentType)} className={`py-2 rounded-lg text-xs font-bold capitalize ${paymentType === type ? 'bg-primary text-white' : 'bg-white text-gray-500'}`}>{type}</button>
                   ))}
                </div>
                {(paymentType !== 'loan') && <Input label="Cash Received" type="number" value={amountPaidInput} onChange={(e) => setAmountPaidInput(e.target.value)} />}
@@ -182,11 +191,15 @@ export default function Sales() {
            <p className="text-2xl font-bold text-gray-800">TOTAL: {lastTransaction?.total.toFixed(2)}</p>
            
            <div className="grid grid-cols-1 gap-3">
-             <Button onClick={handleSmartPrint} disabled={isPrinting} className="bg-primary text-white py-4 shadow-lg shadow-orange-100 flex items-center justify-center gap-3">
-                {isPrinting ? <RefreshCw className="animate-spin" size={20} /> : <Printer size={20} />} 
+             <Button 
+                onClick={handleSmartPrint} 
+                disabled={isPrinting || !btPrinter.isConnected} 
+                className={`${btPrinter.isConnected ? 'bg-primary text-white' : 'bg-gray-100 text-gray-400'} py-4 shadow-lg flex items-center justify-center gap-3`}
+              >
+                {isPrinting ? <RefreshCw className="animate-spin" size={20} /> : <Bluetooth size={20} />} 
                 <div className="text-left">
-                  <div className="font-bold">{btPrinter.isConnected ? 'Bluetooth Print' : 'Standard Thermal Print'}</div>
-                  <div className="text-[10px] opacity-80 font-normal">{btPrinter.isConnected ? 'Direct Link' : 'System Dialog'}</div>
+                  <div className="font-bold">{btPrinter.isConnected ? 'Bluetooth Print' : 'Printer Not Connected'}</div>
+                  <div className="text-[10px] opacity-80 font-normal">{btPrinter.isConnected ? 'Direct Link' : 'Connect in Settings'}</div>
                 </div>
              </Button>
 
@@ -197,59 +210,6 @@ export default function Sales() {
            </div>
         </div>
       </Modal>
-
-      {/* Hidden browser print area for 58mm thermal */}
-      <div className="hidden print:block print-container">
-          {lastTransaction && (
-            <div className="w-[58mm] text-[7.5pt] leading-tight bg-white text-black font-mono px-1">
-                <div className="text-center font-bold mb-1 text-[8.5pt]">{(lastTransaction.sellerInfo.name || '').toUpperCase()}</div>
-                <div className="text-center text-[6.5pt] mb-1">{lastTransaction.sellerInfo.address}</div>
-                {lastTransaction.sellerInfo.contact && <div className="text-center text-[6.5pt] mb-1">Tel: {lastTransaction.sellerInfo.contact}</div>}
-                
-                <div className="border-t border-black my-1"></div>
-                
-                <div className="flex justify-between text-[6pt]">
-                  <span>No: {(lastTransaction.id || '').slice(-8).toUpperCase()}</span>
-                  <span>{new Date(lastTransaction.timestamp).toLocaleDateString()}</span>
-                </div>
-                <div className="text-[6pt] mb-1 uppercase">Pay: {lastTransaction.paymentType}</div>
-                
-                <div className="border-t border-black my-1"></div>
-                
-                <div className="space-y-1">
-                  <div className="flex justify-between font-bold text-[6.5pt] border-b border-black pb-0.5 mb-1">
-                    <span className="w-[35mm]">ITEM</span>
-                    <span className="w-[8mm] text-center">QTY</span>
-                    <span className="w-[15mm] text-right">TOTAL</span>
-                  </div>
-                  {lastTransaction.items.map((item, i) => {
-                    const subtotal = (item.manualTotal ?? item.sellingPrice * item.quantity).toFixed(2);
-                    return (
-                      <div key={i} className="flex flex-col mb-1">
-                        <span className="font-bold truncate">{item.name}</span>
-                        <div className="flex justify-between text-[6.5pt] italic">
-                          <span className="w-[35mm]">{item.quantity} x {item.sellingPrice.toFixed(2)}</span>
-                          <span className="w-[15mm] text-right">{subtotal}</span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                <div className="border-t border-black my-2"></div>
-                
-                <div className="space-y-0.5">
-                  <div className="flex justify-between font-bold text-[8pt]"><span>TOTAL DUE</span><span>{lastTransaction.total.toFixed(2)}</span></div>
-                  <div className="flex justify-between text-[7pt]"><span>PAID</span><span>{lastTransaction.amountPaid.toFixed(2)}</span></div>
-                  {lastTransaction.remainingBalance > 0 && <div className="flex justify-between font-bold text-[7pt]"><span>BALANCE</span><span>{lastTransaction.remainingBalance.toFixed(2)}</span></div>}
-                </div>
-                
-                <div className="text-center mt-6 pt-2 border-t border-dashed border-gray-300 text-[7pt]">Thank you for shopping!</div>
-                {lastTransaction.sellerInfo.returnPolicy && <div className="text-[5.5pt] text-center mt-1 italic opacity-70">{lastTransaction.sellerInfo.returnPolicy}</div>}
-                <div className="h-8"></div>
-            </div>
-          )}
-      </div>
     </div>
   );
 }
