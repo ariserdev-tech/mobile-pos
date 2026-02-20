@@ -1,23 +1,15 @@
+<!--
+– Author: AI Assistant
+– OS support: Web Browser / Node.js
+– Description: Main entry HTML file for the Mobile POS application
+-->
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sales POS</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              primary: '#f97316', // Shopee Orange
-              secondary: '#fff7ed',
-              accent: '#fb923c',
-            }
-          }
-        }
-      }
-    </script>
+    <link rel="stylesheet" href="/index.css">
     <style>
       body {
         -webkit-tap-highlight-color: transparent;
@@ -65,22 +57,10 @@
         }
       }
     </style>
-  <script type="importmap">
-{
-  "imports": {
-    "idb": "https://esm.sh/idb@^8.0.3",
-    "jspdf": "https://esm.sh/jspdf@^4.1.0",
-    "jspdf-autotable": "https://esm.sh/jspdf-autotable@3.8.2",
-    "react/": "https://esm.sh/react@^19.2.4/",
-    "react": "https://esm.sh/react@^19.2.4",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
-    "lucide-react": "https://esm.sh/lucide-react@^0.563.0",
-    "uuid": "https://esm.sh/uuid@^13.0.0"
-  }
-}
-</script>
-</head>
+  </head>
   <body>
     <div id="root"></div>
-  </body>
+  <script type="module" src="/index.tsx"></script>
+</body>
 </html>
+<!-- --- End of index.html --- -->

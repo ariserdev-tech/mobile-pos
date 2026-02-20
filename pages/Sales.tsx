@@ -80,7 +80,13 @@ export default function Sales() {
       customer: customer.name ? customer : undefined,
       isPaid: remainingBalance <= 0,
       paymentHistory: [],
-      sellerInfo: { ...settings }
+      sellerInfo: { 
+        name: settings.sellerName,
+        address: settings.sellerAddress,
+        contact: settings.sellerContact,
+        websiteUrl: settings.websiteUrl,
+        returnPolicy: settings.returnPolicy
+      }
     };
 
     await addTransaction(tx);
@@ -195,42 +201,52 @@ export default function Sales() {
       {/* Hidden browser print area for 58mm thermal */}
       <div className="hidden print:block print-container">
           {lastTransaction && (
-            <div className="w-[58mm] text-[8.5pt] leading-tight bg-white text-black font-mono">
-                <div className="text-center font-bold mb-1">{lastTransaction.sellerInfo.name.toUpperCase()}</div>
-                <div className="text-center text-[7.5pt] mb-1">{lastTransaction.sellerInfo.address}</div>
-                {lastTransaction.sellerInfo.contact && <div className="text-center text-[7.5pt] mb-1">Tel: {lastTransaction.sellerInfo.contact}</div>}
+            <div className="w-[58mm] text-[7.5pt] leading-tight bg-white text-black font-mono px-1">
+                <div className="text-center font-bold mb-1 text-[8.5pt]">{(lastTransaction.sellerInfo.name || '').toUpperCase()}</div>
+                <div className="text-center text-[6.5pt] mb-1">{lastTransaction.sellerInfo.address}</div>
+                {lastTransaction.sellerInfo.contact && <div className="text-center text-[6.5pt] mb-1">Tel: {lastTransaction.sellerInfo.contact}</div>}
                 
-                <div className="border-t border-black my-2"></div>
+                <div className="border-t border-black my-1"></div>
                 
-                <div className="flex justify-between text-[7pt]"><span>No: {lastTransaction.id.slice(-8).toUpperCase()}</span><span>{new Date(lastTransaction.timestamp).toLocaleDateString()}</span></div>
-                <div className="text-[7pt] mb-2 uppercase">Pay: {lastTransaction.paymentType}</div>
+                <div className="flex justify-between text-[6pt]">
+                  <span>No: {(lastTransaction.id || '').slice(-8).toUpperCase()}</span>
+                  <span>{new Date(lastTransaction.timestamp).toLocaleDateString()}</span>
+                </div>
+                <div className="text-[6pt] mb-1 uppercase">Pay: {lastTransaction.paymentType}</div>
                 
-                <div className="border-t border-black my-2"></div>
+                <div className="border-t border-black my-1"></div>
                 
-                <div className="space-y-3">
+                <div className="space-y-1">
+                  <div className="flex justify-between font-bold text-[6.5pt] border-b border-black pb-0.5 mb-1">
+                    <span className="w-[35mm]">ITEM</span>
+                    <span className="w-[8mm] text-center">QTY</span>
+                    <span className="w-[15mm] text-right">TOTAL</span>
+                  </div>
                   {lastTransaction.items.map((item, i) => {
                     const subtotal = (item.manualTotal ?? item.sellingPrice * item.quantity).toFixed(2);
                     return (
-                      <div key={i} className="flex flex-col">
-                        <span className="font-bold">{item.name}</span>
-                        <div className="flex justify-between pl-2 italic">
-                          <span>{item.quantity} x {item.sellingPrice.toFixed(2)}</span>
-                          <span>{subtotal}</span>
+                      <div key={i} className="flex flex-col mb-1">
+                        <span className="font-bold truncate">{item.name}</span>
+                        <div className="flex justify-between text-[6.5pt] italic">
+                          <span className="w-[35mm]">{item.quantity} x {item.sellingPrice.toFixed(2)}</span>
+                          <span className="w-[15mm] text-right">{subtotal}</span>
                         </div>
                       </div>
                     );
                   })}
                 </div>
 
-                <div className="border-t border-black my-3"></div>
+                <div className="border-t border-black my-2"></div>
                 
-                <div className="flex justify-between font-bold text-[9pt]"><span>TOTAL DUE</span><span>{lastTransaction.total.toFixed(2)}</span></div>
-                <div className="flex justify-between"><span>PAID</span><span>{lastTransaction.amountPaid.toFixed(2)}</span></div>
-                {lastTransaction.remainingBalance > 0 && <div className="flex justify-between font-bold"><span>BALANCE</span><span>{lastTransaction.remainingBalance.toFixed(2)}</span></div>}
+                <div className="space-y-0.5">
+                  <div className="flex justify-between font-bold text-[8pt]"><span>TOTAL DUE</span><span>{lastTransaction.total.toFixed(2)}</span></div>
+                  <div className="flex justify-between text-[7pt]"><span>PAID</span><span>{lastTransaction.amountPaid.toFixed(2)}</span></div>
+                  {lastTransaction.remainingBalance > 0 && <div className="flex justify-between font-bold text-[7pt]"><span>BALANCE</span><span>{lastTransaction.remainingBalance.toFixed(2)}</span></div>}
+                </div>
                 
-                <div className="text-center mt-8 pt-4 border-t border-dashed border-gray-300">Thank you for shopping!</div>
-                {lastTransaction.sellerInfo.returnPolicy && <div className="text-[6pt] text-center mt-2 italic opacity-60">{lastTransaction.sellerInfo.returnPolicy}</div>}
-                <div className="h-10"></div>
+                <div className="text-center mt-6 pt-2 border-t border-dashed border-gray-300 text-[7pt]">Thank you for shopping!</div>
+                {lastTransaction.sellerInfo.returnPolicy && <div className="text-[5.5pt] text-center mt-1 italic opacity-70">{lastTransaction.sellerInfo.returnPolicy}</div>}
+                <div className="h-8"></div>
             </div>
           )}
       </div>

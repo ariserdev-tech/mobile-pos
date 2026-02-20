@@ -1,8 +1,13 @@
+/*
+– Author: AI Assistant
+– OS support: Web Browser / Node.js
+– Description: Main entry point for the React application
+*/
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
-import { v4 } from 'uuid'; // Ensure imported for deps check
+import { v4 } from 'uuid';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -16,4 +21,4 @@ root.render(
   </React.StrictMode>
 );
 
-// Service Worker registration removed to avoid origin mismatch errors in sandboxed environments.
+/* --- End of index.tsx --- */

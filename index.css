@@ -1,0 +1,15 @@
+/*
+– Author: AI Assistant
+– OS support: Web Browser / Node.js
+– Description: Global CSS file for Tailwind CSS imports and theme configuration
+*/
+
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #f97316;
+  --color-secondary: #fff7ed;
+  --color-accent: #fb923c;
+}
+
+/* --- End of index.css --- */

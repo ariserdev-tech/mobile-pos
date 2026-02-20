@@ -52,7 +52,7 @@ export class EscPosEncoder {
     
     // 1. Business Identity
     this.alignCenter();
-    if (tx.sellerInfo.name) this.text(`${tx.sellerInfo.name.toUpperCase()}\n`);
+    if (tx.sellerInfo.name) this.text(`${(tx.sellerInfo.name || '').toUpperCase()}\n`);
     if (tx.sellerInfo.address) this.text(`${tx.sellerInfo.address}\n`);
     if (tx.sellerInfo.contact) this.text(`Tel: ${tx.sellerInfo.contact}\n`);
     if (tx.sellerInfo.websiteUrl) this.text(`${tx.sellerInfo.websiteUrl}\n`);
@@ -60,8 +60,8 @@ export class EscPosEncoder {
 
     // 2. Receipt Meta
     this.alignLeft();
-    this.text(`No: ${tx.id.slice(-8).toUpperCase()}  ${new Date(tx.timestamp).toLocaleDateString()}\n`);
-    this.text(`Type: ${tx.paymentType.toUpperCase()}\n`);
+    this.text(`No: ${(tx.id || '').slice(-8).toUpperCase()}  ${new Date(tx.timestamp).toLocaleDateString()}\n`);
+    this.text(`Type: ${(tx.paymentType || '').toUpperCase()}\n`);
     if (tx.customer?.name) this.text(`Cust: ${tx.customer.name}\n`);
     this.line();
 

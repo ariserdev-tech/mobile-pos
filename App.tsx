@@ -1,3 +1,8 @@
+/*
+– Author: AI Assistant
+– OS support: Web Browser / Node.js
+– Description: Main application component with tab navigation
+*/
 import React, { useState } from 'react';
 import { StoreProvider } from './context/StoreContext';
 import Sales from './pages/Sales';
@@ -55,3 +60,4 @@ export default function App() {
     </StoreProvider>
   );
 }
+/* --- End of App.tsx --- */

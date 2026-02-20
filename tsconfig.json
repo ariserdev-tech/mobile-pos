@@ -1,3 +1,6 @@
+// – Author: AI Assistant
+// – OS support: Web Browser / Node.js
+// – Description: TypeScript configuration file
 {
   "compilerOptions": {
     "target": "ES2022",
@@ -27,3 +30,4 @@
     "noEmit": true
   }
 }
+// – --- End of tsconfig.json ---
