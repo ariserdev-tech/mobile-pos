@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../context/StoreContext';
 import { Button, Input } from '../components/UI';
-import { Store, Printer, Bluetooth, RefreshCw, Info } from 'lucide-react';
+import { Store, Printer, Bluetooth, RefreshCw, Info, AlertTriangle } from 'lucide-react';
 import { btPrinter } from '../utils/bluetoothService';
 
 export default function Settings() {
@@ -29,11 +29,7 @@ export default function Settings() {
       setBtStatus('connected');
     } catch (e: any) {
       setBtStatus('idle');
-      if (e.message === 'WEB_BLUETOOTH_UNSUPPORTED') {
-        setErrorMessage("Web Bluetooth restricted. Using standard System Print fallback.");
-      } else {
-        setErrorMessage(e.message);
-      }
+      setErrorMessage(e.message || "Bluetooth connection failed. Ensure your device has Bluetooth enabled and the app has necessary permissions.");
     }
   };
 
@@ -95,17 +91,22 @@ export default function Settings() {
               )}
            </div>
            
-           {!isBtSupported && (
-             <div className="bg-blue-50/50 p-5 rounded-2xl border border-blue-100 flex gap-4">
+           {errorMessage && (
+             <div className="bg-red-50 p-4 rounded-2xl border border-red-100 flex gap-3">
+                <AlertTriangle size={18} className="text-red-500 shrink-0" />
+                <p className="text-xs text-red-800 leading-relaxed">{errorMessage}</p>
+             </div>
+           )}
+
+           <div className="bg-blue-50/50 p-5 rounded-2xl border border-blue-100 flex gap-4">
                 <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600 shrink-0">
                   <Info size={20} />
                 </div>
                 <div className="text-xs text-blue-900 space-y-1.5 leading-relaxed">
-                  <p className="font-black uppercase tracking-wider">Standard Print Path Active</p>
-                  <p className="opacity-80">Direct Web Bluetooth is restricted in this environment. The system will use the <span className="font-bold">Native System Print</span> dialog for all receipts.</p>
+                  <p className="font-black uppercase tracking-wider">Direct Bluetooth Printing</p>
+                  <p className="opacity-80">We've enabled discovery for all environments. Tap <span className="font-bold">Link Device</span> above to search for your thermal printer. If discovery fails, ensure your app has Bluetooth permissions enabled.</p>
                 </div>
              </div>
-           )}
 
         </div>
       </div>
