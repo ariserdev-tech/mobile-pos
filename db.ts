@@ -98,4 +98,44 @@ export const dbAPI = {
     await db.put('settings', { key: 'returnPolicy', value: settings.returnPolicy });
     await db.put('settings', { key: 'printerAddress', value: settings.printerAddress });
   },
+  async getFullBackup() {
+    const db = await initDB();
+    const items = await db.getAll('items');
+    const transactions = await db.getAll('transactions');
+    const settingsRaw = await db.getAll('settings');
+    const settings: any = {};
+    settingsRaw.forEach(s => { settings[s.key] = s.value; });
+    
+    return {
+      version: DB_VERSION,
+      timestamp: Date.now(),
+      data: { items, transactions, settings }
+    };
+  },
+  async restoreFullBackup(backup: any) {
+    const db = await initDB();
+    const tx = db.transaction(['items', 'transactions', 'settings'], 'readwrite');
+    
+    await tx.objectStore('items').clear();
+    await tx.objectStore('transactions').clear();
+    await tx.objectStore('settings').clear();
+    
+    for (const item of backup.data.items) {
+      await tx.objectStore('items').put(item);
+    }
+    for (const transaction of backup.data.transactions) {
+      await tx.objectStore('transactions').put(transaction);
+    }
+    for (const key in backup.data.settings) {
+      await tx.objectStore('settings').put({ key, value: backup.data.settings[key] });
+    }
+    
+    await tx.done;
+  },
+  async clearAllData() {
+    const db = await initDB();
+    await db.clear('items');
+    await db.clear('transactions');
+    await db.clear('settings');
+  }
 };

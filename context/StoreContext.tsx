@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { InventoryItem, Transaction, StoreSettings } from '../types';
+import { InventoryItem, Transaction, StoreSettings, Tab } from '../types';
 import { dbAPI } from '../db';
 
 interface StoreContextType {
@@ -17,6 +17,11 @@ interface StoreContextType {
   updateTransaction: (transaction: Transaction) => Promise<void>;
   deleteTransaction: (id: string) => Promise<void>;
   updateSettings: (settings: StoreSettings) => Promise<void>;
+  exportData: () => Promise<void>;
+  importData: (json: any) => Promise<void>;
+  clearAllData: () => Promise<void>;
+  activeTab: Tab;
+  setActiveTab: (tab: Tab) => void;
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -33,6 +38,7 @@ export const StoreProvider = ({ children }: { children?: ReactNode }) => {
     printerAddress: ''
   });
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<Tab>('sales');
 
   const refreshItems = async () => {
     const data = await dbAPI.getItems();
@@ -107,6 +113,35 @@ export const StoreProvider = ({ children }: { children?: ReactNode }) => {
     setSettings(newSettings);
   };
 
+  const exportData = async () => {
+    const backup = await dbAPI.getFullBackup();
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `pos_backup_${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+  };
+
+  const importData = async (json: any) => {
+    await dbAPI.restoreFullBackup(json);
+    await Promise.all([refreshItems(), refreshTransactions(), refreshSettings()]);
+  };
+
+  const clearAllData = async () => {
+    await dbAPI.clearAllData();
+    setItems([]);
+    setTransactions([]);
+    setSettings({ 
+      sellerName: '', 
+      sellerAddress: '', 
+      sellerContact: '',
+      websiteUrl: '',
+      returnPolicy: 'Returns accepted within 30 days with receipt.',
+      printerAddress: ''
+    });
+  };
+
   return (
     <StoreContext.Provider
       value={{
@@ -124,6 +159,11 @@ export const StoreProvider = ({ children }: { children?: ReactNode }) => {
         updateTransaction,
         deleteTransaction,
         updateSettings,
+        exportData,
+        importData,
+        clearAllData,
+        activeTab,
+        setActiveTab,
       }}
     >
       {children}

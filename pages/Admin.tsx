@@ -45,34 +45,39 @@ export default function Admin() {
     return transactions.filter(t => t.timestamp >= currentViewDate.getTime() && t.timestamp <= endOfDay.getTime());
   }, [transactions, currentViewDate]);
 
+  const activeDailyTransactions = useMemo(() => {
+    return dailyTransactions.filter(t => !t.isVoided);
+  }, [dailyTransactions]);
+
   const allOutstandingLoans = useMemo(() => {
-    return transactions.filter(t => t.remainingBalance > 0).sort((a, b) => (a.customer?.name || '').localeCompare(b.customer?.name || '') || b.timestamp - a.timestamp);
+    return transactions.filter(t => t.remainingBalance > 0 && !t.isVoided).sort((a, b) => (a.customer?.name || '').localeCompare(b.customer?.name || '') || b.timestamp - a.timestamp);
   }, [transactions]);
 
-  const dailyLoans = useMemo(() => dailyTransactions.filter(t => t.remainingBalance > 0), [dailyTransactions]);
+  const dailyLoans = useMemo(() => activeDailyTransactions.filter(t => t.remainingBalance > 0), [activeDailyTransactions]);
 
   const stats = useMemo(() => {
-    const revenueStats = dailyTransactions.reduce((acc, t) => {
+    const revenueStats = activeDailyTransactions.reduce((acc, t) => {
         const cogs = t.items.reduce((sum, item) => sum + ((item.basePrice || 0) * item.quantity), 0);
         const profit = t.isPaid ? (t.total - cogs) : 0;
         return { totalSales: acc.totalSales + t.total, netSales: acc.netSales + profit };
     }, { totalSales: 0, netSales: 0 });
 
     const cashCollected = transactions.reduce((total, t) => {
+        if (t.isVoided) return total;
         const history = t.paymentHistory || [];
         if (history.length === 0) return isSameDay(t.timestamp) ? total + t.amountPaid : total;
         return total + history.filter(p => isSameDay(p.date)).reduce((sum, p) => sum + p.amount, 0);
     }, 0);
 
     return { ...revenueStats, cashCollected };
-  }, [dailyTransactions, transactions, currentViewDate]);
+  }, [activeDailyTransactions, transactions, currentViewDate]);
 
   const dailyLoanTotal = useMemo(() => dailyLoans.reduce((sum, t) => sum + t.remainingBalance, 0), [dailyLoans]);
   const totalAccumulatedLoans = useMemo(() => allOutstandingLoans.reduce((sum, t) => sum + t.remainingBalance, 0), [allOutstandingLoans]);
 
   const aggregatedItems = useMemo(() => {
     const itemMap = new Map<string, { name: string; quantity: number; total: number }>();
-    dailyTransactions.forEach(tx => {
+    activeDailyTransactions.forEach(tx => {
       tx.items.forEach(item => {
         const existing = itemMap.get(item.id);
         const itemTotal = item.manualTotal ?? (item.sellingPrice * item.quantity);
@@ -81,7 +86,7 @@ export default function Admin() {
       });
     });
     return Array.from(itemMap.values());
-  }, [dailyTransactions]);
+  }, [activeDailyTransactions]);
 
   const filteredAggregatedItems = useMemo(() => {
     if (!itemSearchQuery) return aggregatedItems;
@@ -135,7 +140,7 @@ export default function Admin() {
 
   const handleDeleteTransaction = async () => {
     if (!txToDelete) return;
-    await deleteTransaction(txToDelete.id);
+    await updateTransaction({ ...txToDelete, isVoided: true });
     setTxToDelete(null);
     setSelectedTx(null);
   };
@@ -238,8 +243,12 @@ export default function Admin() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="font-black text-gray-900">₱{tx.total.toFixed(2)}</p>
-                  {tx.remainingBalance > 0 && (
+                  <p className={`font-black ${tx.isVoided ? 'text-gray-300 line-through' : 'text-gray-900'}`}>₱{tx.total.toFixed(2)}</p>
+                  {tx.isVoided ? (
+                    <span className="text-[9px] bg-gray-100 text-gray-400 px-2 py-0.5 rounded-full font-black border border-gray-200">
+                      VOIDED
+                    </span>
+                  ) : tx.remainingBalance > 0 && (
                     <span className="text-[9px] bg-red-50 text-red-600 px-2 py-0.5 rounded-full font-black border border-red-100">
                       BAL: {tx.remainingBalance.toFixed(2)}
                     </span>
@@ -286,6 +295,11 @@ export default function Admin() {
              <div className="py-2 space-y-1">{selectedTx.items.map((i, idx) => <div key={idx} className="flex justify-between text-sm"><span>{i.quantity}x {i.name}</span><span>{(i.manualTotal ?? i.sellingPrice * i.quantity).toFixed(2)}</span></div>)}</div>
              <div className="flex justify-between font-bold text-lg"><span>Total</span><span>{selectedTx.total.toFixed(2)}</span></div>
              <div className="flex justify-between text-red-500 font-bold"><span>Balance</span><span>{selectedTx.remainingBalance.toFixed(2)}</span></div>
+             {selectedTx.isVoided && (
+               <div className="bg-gray-100 p-3 rounded-xl text-center border border-gray-200">
+                 <p className="text-xs font-black text-gray-400 uppercase tracking-widest">This transaction is voided</p>
+               </div>
+             )}
              <div className="grid grid-cols-2 gap-3 pt-4">
                 <Button 
                     onClick={() => handleBtPrint(selectedTx)} 
@@ -296,15 +310,17 @@ export default function Admin() {
                 </Button>
                 <Button variant="secondary" onClick={() => generateReceipt(selectedTx)} className="flex items-center justify-center gap-2"><FileText size={18}/> PDF</Button>
              </div>
-             <div className="pt-2">
-                <Button 
-                    variant="danger" 
-                    onClick={() => setTxToDelete(selectedTx)}
-                    className="flex items-center justify-center gap-2 bg-red-50 text-red-600 border border-red-100"
-                >
-                    <Trash2 size={18}/> Void Transaction
-                </Button>
-             </div>
+             {!selectedTx.isVoided && (
+               <div className="pt-2">
+                  <Button 
+                      variant="danger" 
+                      onClick={() => setTxToDelete(selectedTx)}
+                      className="flex items-center justify-center gap-2 bg-red-50 text-red-600 border border-red-100"
+                  >
+                      <Trash2 size={18}/> Void Transaction
+                  </Button>
+               </div>
+             )}
         </div>}
       </Modal>
 

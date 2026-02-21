@@ -3,8 +3,8 @@
 – OS support: Web Browser / Node.js
 – Description: Main application component with tab navigation
 */
-import React, { useState } from 'react';
-import { StoreProvider } from './context/StoreContext';
+import React from 'react';
+import { StoreProvider, useStore } from './context/StoreContext';
 import Sales from './pages/Sales';
 import Admin from './pages/Admin';
 import Inventory from './pages/Inventory';
@@ -13,7 +13,7 @@ import { Tab } from './types';
 import { ShoppingBag, LayoutDashboard, Package, Settings as SettingsIcon } from 'lucide-react';
 
 const AppContent = () => {
-  const [activeTab, setActiveTab] = useState<Tab>('sales');
+  const { activeTab, setActiveTab } = useStore();
 
   const renderPage = () => {
     switch (activeTab) {

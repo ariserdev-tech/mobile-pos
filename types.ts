@@ -33,6 +33,7 @@ export interface Transaction {
   paymentType: string;
   customer?: CustomerInfo;
   isPaid: boolean;
+  isVoided?: boolean;
   paymentHistory?: PaymentRecord[];
   sellerInfo: {
     name: string;

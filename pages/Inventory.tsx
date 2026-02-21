@@ -119,14 +119,12 @@ export default function Inventory() {
         const json = JSON.parse(event.target?.result as string);
         if (Array.isArray(json)) {
            await importInventory(json, replaceInventory);
-           alert('Inventory imported successfully');
            setImportMode(false);
-        } else {
-           alert('Invalid JSON format');
         }
       } catch (err) {
-        alert('Error parsing JSON');
+        console.error('Import failed:', err);
       }
+      e.target.value = '';
     };
     reader.readAsText(file);
   };
