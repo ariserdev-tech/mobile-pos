@@ -15,6 +15,7 @@ interface StoreContextType {
   importInventory: (newItems: InventoryItem[], replace: boolean) => Promise<void>;
   addTransaction: (transaction: Transaction) => Promise<void>;
   updateTransaction: (transaction: Transaction) => Promise<void>;
+  deleteTransaction: (id: string) => Promise<void>;
   updateSettings: (settings: StoreSettings) => Promise<void>;
 }
 
@@ -96,6 +97,11 @@ export const StoreProvider = ({ children }: { children?: ReactNode }) => {
     await refreshTransactions();
   };
 
+  const deleteTransaction = async (id: string) => {
+    await dbAPI.deleteTransaction(id);
+    await refreshTransactions();
+  };
+
   const updateSettings = async (newSettings: StoreSettings) => {
     await dbAPI.saveSettings(newSettings);
     setSettings(newSettings);
@@ -116,6 +122,7 @@ export const StoreProvider = ({ children }: { children?: ReactNode }) => {
         importInventory,
         addTransaction,
         updateTransaction,
+        deleteTransaction,
         updateSettings,
       }}
     >

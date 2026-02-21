@@ -4,12 +4,12 @@ import { Transaction } from '../types';
 import { Modal, Button, Input } from '../components/UI';
 import { generateReceipt } from '../utils/pdfGenerator';
 import { btPrinter } from '../utils/bluetoothService';
-import { ChevronLeft, ChevronRight, FileText, Users, Eye, Package, Search, Wallet, History, Calendar, Download, Bluetooth, RefreshCw } from 'lucide-react';
+import { ChevronLeft, ChevronRight, FileText, Users, Eye, Package, Search, Wallet, History, Calendar, Download, Bluetooth, RefreshCw, Trash2, AlertTriangle } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 export default function Admin() {
-  const { transactions, updateTransaction } = useStore();
+  const { transactions, updateTransaction, deleteTransaction } = useStore();
   const [selectedDate, setSelectedDate] = useState(new Date());
   
   // States
@@ -21,6 +21,7 @@ export default function Admin() {
   const [showItemsModal, setShowItemsModal] = useState(false);
   const [itemSearchQuery, setItemSearchQuery] = useState('');
   const [isPrinting, setIsPrinting] = useState(false);
+  const [txToDelete, setTxToDelete] = useState<Transaction | null>(null);
 
   // Helpers
   const getStartOfDay = (d: Date) => {
@@ -129,6 +130,14 @@ export default function Admin() {
         theme: 'striped', headStyles: { fillColor: [238, 77, 45] }
     });
     doc.save(`items_${selectedDate.toISOString().split('T')[0]}.pdf`);
+    setShowItemsModal(false);
+  };
+
+  const handleDeleteTransaction = async () => {
+    if (!txToDelete) return;
+    await deleteTransaction(txToDelete.id);
+    setTxToDelete(null);
+    setSelectedTx(null);
   };
 
   return (
@@ -287,7 +296,47 @@ export default function Admin() {
                 </Button>
                 <Button variant="secondary" onClick={() => generateReceipt(selectedTx)} className="flex items-center justify-center gap-2"><FileText size={18}/> PDF</Button>
              </div>
+             <div className="pt-2">
+                <Button 
+                    variant="danger" 
+                    onClick={() => setTxToDelete(selectedTx)}
+                    className="flex items-center justify-center gap-2 bg-red-50 text-red-600 border border-red-100"
+                >
+                    <Trash2 size={18}/> Void Transaction
+                </Button>
+             </div>
         </div>}
+      </Modal>
+
+      {/* Delete Transaction Confirmation Modal */}
+      <Modal
+        isOpen={!!txToDelete}
+        onClose={() => setTxToDelete(null)}
+        title="Void Transaction?"
+      >
+         <div className="space-y-6 p-2">
+            <div className="flex flex-col items-center gap-2 text-center">
+                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center text-red-500 mb-2">
+                    <AlertTriangle size={32} />
+                </div>
+                <h3 className="text-xl font-bold text-gray-800">Void Transaction?</h3>
+                <p className="text-gray-500 text-sm">
+                    Are you sure you want to void this transaction? This will remove it from sales history and cannot be undone.
+                </p>
+                {txToDelete && (
+                  <div className="mt-2 p-3 bg-gray-50 rounded-xl w-full text-left">
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Transaction Details</p>
+                    <p className="font-bold text-gray-700">{txToDelete.customer?.name || 'Walk-in'}</p>
+                    <p className="text-lg font-black text-primary">₱{txToDelete.total.toFixed(2)}</p>
+                  </div>
+                )}
+            </div>
+            
+            <div className="flex gap-3 pt-2">
+                <Button variant="secondary" onClick={() => setTxToDelete(null)}>Cancel</Button>
+                <Button variant="danger" onClick={handleDeleteTransaction}>Confirm Void</Button>
+            </div>
+         </div>
       </Modal>
 
       <Modal isOpen={!!repaymentTx} onClose={() => setRepaymentTx(null)} title="Loan Repayment">

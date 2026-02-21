@@ -67,6 +67,10 @@ export const dbAPI = {
     const db = await initDB();
     return db.put('transactions', transaction);
   },
+  async deleteTransaction(id: string) {
+    const db = await initDB();
+    return db.delete('transactions', id);
+  },
   async getSettings(): Promise<StoreSettings> {
     const db = await initDB();
     const nameRecord = await db.get('settings', 'sellerName');
